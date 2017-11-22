@@ -1,0 +1,45 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3' // Plugin so we can render AsciiDoc documents.
+        classpath 'com.github.jruby-gradle:jruby-gradle-plugin:0.3.2' // Plugin so we can use Ruby gems when rendering documents. https://github.com/jruby-gradle/jruby-gradle-plugin/blob/master/docs/plugins/base.adoc
+    }
+}
+apply plugin: 'org.asciidoctor.gradle.asciidoctor'
+apply plugin: 'com.github.jruby-gradle.base'
+
+dependencies {
+    // provide the asciidoctor-diagram-gem and its dependencies
+    // gems dependency configuration is added by jruby-gradle-plugin.
+    gems 'rubygems:asciidoctor-diagram:1.4.0'
+}
+
+asciidoctor {
+    // let jruby-gradle download and install gems
+    dependsOn jrubyPrepareGems
+
+    // include the diagram gem
+    requires = ['asciidoctor-diagram']
+    gemPath = jrubyPrepareGems.outputDir
+
+    options doctype: 'book'
+
+    // let's convert to PDF while we're at it
+    backends = ['html5']
+
+    attributes 'source-highlighter'    : 'coderay',
+            'coderay-linenums-mode' : 'table',
+            toc                     : 'left',
+            icon                    : 'font',
+            linkattrs               : true,
+            encoding                : 'utf-8'
+
+    resources {
+        from('src/docs/asciidoc') {
+            include '**/*.png'
+        }
+    }
+}
